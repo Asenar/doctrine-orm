@@ -1082,4 +1082,25 @@ class BasicFunctionalTest extends OrmFunctionalTestCase
         // post insert IDs will be assigned during flush
         $this->_em->flush();
     }
+
+    public function testSingleColumnIndexedByPrimaryKeyQuery(): void
+    {
+        $asenar           = new CmsUser();
+        $asenar->name     = 'Michaël';
+        $asenar->username = 'asenar';
+        $this->_em->persist($asenar);
+
+        $this->_em->flush();
+
+        $query = $this->_em->createQueryBuilder()
+            ->select('u.name')
+            ->from(CmsUser::class, 'u')
+            ->indexBy('u', 'u.username')
+            ->getQuery();
+
+        $users = $query->getScalarResult();
+
+        self::assertCount(1, $users);
+        self::assertSame(['asenar' => 'Michaël'], $users);
+    }
 }
